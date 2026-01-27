@@ -2,13 +2,30 @@ import sys
 import sqlite3
 database = "horseraces.db"
 horses = ["FLP", "DDD", "WSY", "MET", "LFS", "SFE", "GUN", "LWN", "SUN", "PSN", "SJU", "VOD", "VOID"]
+gen0 = ["FLP", "DDD", "WSY", "MET", "LFS", "SFE", "GUN", "LWN", "SUN", "PSN", "SJU", "VOD"]
+gen1 = ["DDD", "FLP", "LFS", "MET", "SFE", "WSY"]
+gen2 = ["GUN", "LWN", "PSN", "SJU", "SUN", "VOD"]
+generations = {"0": gen0, "1": gen1, "2": gen2}
 maps = ["1", "2", "3"]
 map_names = ["pools", "vyral_cbt", "reya_castle"]
 
 def main():
-    if len(sys.argv) == 1:
-        print("Usage: python3 singlehorse.py [HORSE_CODE] <MAP_CODE>")
+    if len(sys.argv) == 1 or sys.argv[1] == "help" or len(sys.argv) < 4:
+        print("Usage: python3 racingstats.py [MAP_CODE] [g/h] [generation number or list of horses]")
         sys.exit(1)
+    if sys.argv[1] not in maps:
+        print(f"{sys.argv[1]} is not a valid map code.")
+        sys.exit(1)
+    map_code = sys.argv[1]
+    if sys.argv[2].upper() not in ["G", "H"]:
+        print(f"{sys.argv[2]} is not a valid option. Use 'g' for generation or 'h' for horse list.")
+        sys.exit(1)
+    if sys.argv[2].upper() == "G":
+        if sys.argv[3] not in range(len(generations) + 1):
+            print(f"{sys.argv[3]} is not a valid generation number. Use '0' (for ALL), '1', or '2'.")
+            sys.exit(1)
+
+
     horse_code = sys.argv[1].upper()
     if horse_code not in horses:
         print(f"{horse_code} is not a valid horse code.")
