@@ -105,12 +105,12 @@ def main():
         elif since_win_count == most_sincewin:
             most_sincewinhorse.append(horse_code)
         conn.close()
-    print(f"Best Win Percentage:    {best_winpercentage}% by {best_wphorse}")
-    print(f"Worst Win Percentage:   {worst_winpercentage}% by {worst_wphorse}")
-    print(f"Most Wins:              {most_wins} by {most_winhorse}")
-    print(f"Least Wins:             {least_wins} by {least_winhorse}")
-    print(f"Most Wins Participated: {most_totalraces} by {most_racehorse}")
-    print(f"Longest Since Win:      {most_sincewin} by {most_sincewinhorse}")
+    print(f"Best Win Percentage:     {best_winpercentage}% by {best_wphorse}")
+    print(f"Worst Win Percentage:    {worst_winpercentage}% by {worst_wphorse}")
+    print(f"Most Wins:               {most_wins} by {most_winhorse}")
+    print(f"Least Wins:              {least_wins} by {least_winhorse}")
+    print(f"Most Races Participated: {most_totalraces} by {most_racehorse}")
+    print(f"Longest Since Win:       {most_sincewin} by {most_sincewinhorse}")
 
 
 main()

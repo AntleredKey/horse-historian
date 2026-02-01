@@ -23,12 +23,12 @@ def main():
 
             cursor.execute(f"select count(*) from races where level = '{map}';")
             race_count = cursor.fetchone()[0]
-            print("AMOUNT OF RACES:     ", race_count)
+            print("Amount of Races:        ", race_count)
 
             cursor.execute(f"select winningHorse, count(winningHorse) as count from races where level = '{map}' group by winningHorse order by count desc;")
             winning_horse = cursor.fetchone()[0]
             winning_count = cursor.fetchone()[1]
-            print("MOST WINS:           ", winning_horse, " with ", winning_count, "wins")
+            print("Most Wins:              ", winning_horse, " with ", winning_count, "wins")
 
             cursor.execute(f"select winningHorse, count(winningHorse) as count from races where level = '{map}' group by winningHorse order by winningHorse desc;")
             times_won = cursor.fetchall()
@@ -49,7 +49,7 @@ def main():
                     win_percentages = horse_percentage
                     best_horse = horse
             rounded_value = round(win_percentages, 2)
-            print("BEST WIN PERCENTAGE: ", best_horse, " with ", rounded_value, "%")
+            print("Highest Win Percentage: ", best_horse, " with ", rounded_value, "%")
 
 
 
@@ -60,12 +60,12 @@ def main():
 
         cursor.execute(f"select count(*) from races where level = '{map_code}';")
         race_count = cursor.fetchone()[0]
-        print("AMOUNT OF RACES:     ", race_count)
+        print("Amount of Races:        ", race_count)
 
         cursor.execute(f"select winningHorse, count(winningHorse) as count from races where level = '{map_code}' group by winningHorse order by count desc;")
         winning_horse = cursor.fetchone()[0]
         winning_count = cursor.fetchone()[1]
-        print("MOST WINS:           ", winning_horse, " with ", winning_count, "wins")
+        print("Most Wins:              ", winning_horse, " with ", winning_count, "wins")
 
         cursor.execute(f"select winningHorse, count(winningHorse) as count from races where level = '{map_code}' group by winningHorse order by winningHorse desc;")
         times_won = cursor.fetchall()
@@ -86,7 +86,7 @@ def main():
                 win_percentages = horse_percentage
                 best_horse = horse
         rounded_value = round(win_percentages, 2)
-        print("BEST WIN PERCENTAGE: ", best_horse, " with ", rounded_value, "%")
+        print("Highest Win Percentage: ", best_horse, " with ", rounded_value, "%")
 
     conn.close()
 

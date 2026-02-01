@@ -42,7 +42,7 @@ def main():
         # Last win X races ago
         cursor.execute(f"SELECT COUNT(*) FROM races WHERE id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%'); ")
         win_count = cursor.fetchone()[0]
-        print("Last won:           ", win_count, "races ago")
+        print("Since last win:     ", win_count, "races ago")
 
     if len(sys.argv) == 3:
         map_code = sys.argv[2]
@@ -66,6 +66,10 @@ def main():
                 map_win_percentage = (map_win_count / map_race_count * 100)
                 rounded_value = round(map_win_percentage, 4)
                 print("Map Win Percentage: ", rounded_value, "%")
+
+            cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}'); ")
+        since_win_count = cursor.fetchone()[0]
+        print(f"Since last win:      {since_win_count} races ago")
 
     conn.close()
 
