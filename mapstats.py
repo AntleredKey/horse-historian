@@ -51,6 +51,19 @@ def main():
             rounded_value = round(win_percentages, 2)
             print("Highest Win Percentage: ", best_horse, " with ", rounded_value, "%")
 
+            cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' order by duration desc;")
+            longest_race_time = cursor.fetchone()[2]
+            longest_race_id = cursor.fetchone()[0]
+            longest_race_horse = cursor.fetchone()[1]
+            longest_race_date = cursor.fetchone()[3]
+            print("Longest Race Time:      ", longest_race_time, " by ", longest_race_horse, " on ", longest_race_date, " in race ", longest_race_id)
+            cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' order by duration asc;")
+            shortest_race_time = cursor.fetchone()[2]
+            shortest_race_id = cursor.fetchone()[0]
+            shortest_race_horse = cursor.fetchone()[1]
+            shortest_race_date = cursor.fetchone()[3]
+            print("Shortest Race Time:     ", shortest_race_time, "by", shortest_race_horse, "on", shortest_race_date, "in race", shortest_race_id)
+
 
 
 
@@ -87,6 +100,20 @@ def main():
                 best_horse = horse
         rounded_value = round(win_percentages, 2)
         print("Highest Win Percentage: ", best_horse, " with ", rounded_value, "%")
+
+        cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map_code}' order by duration desc;")
+        longest_race_time = cursor.fetchone()[2]
+        longest_race_id = cursor.fetchone()[0]
+        longest_race_horse = cursor.fetchone()[1]
+        longest_race_date = cursor.fetchone()[3]
+        print("Longest Race Time:      ", longest_race_time, " by ", longest_race_horse, " on ", longest_race_date, " in race ", longest_race_id)
+        cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map_code}' order by duration asc;")
+        shortest_race_time = cursor.fetchone()[2]
+        shortest_race_id = cursor.fetchone()[0]
+        shortest_race_horse = cursor.fetchone()[1]
+        shortest_race_date = cursor.fetchone()[3]
+        print("Shortest Race Time:     ", shortest_race_time, "by", shortest_race_horse, "on", shortest_race_date, "in race", shortest_race_id)
+
 
     conn.close()
 

@@ -16,16 +16,16 @@ Having a "Since last win" to help trigger gambler's fallacy, for example.
 honses.csv is the original file given to me by the Crown Prix developer, SteffanDonal - Additional races just get added to the races table, but I wanted to keep the original.
 horseraces.db features the table races which is mostly just reformatted honses.csv, and horsesInRace which is it expanded for easier stats calculation.
 
-## Programs
+## scripts
 ### update.py
 ##### python3 update.py
 
-This program updates the horsesInRace table to include new races added. It first checks if there are any new races before adding them in.
+This script updates the horsesInRace table to include new races added. It first checks if there are any new races before adding them in.
 
 ### singlehorse.py
 ##### python3 singlehorse.py [HORSE_CODE] <MAP_CODE>
 
-This program runs stats for one horse, and optionally for a single map:
+This script runs stats for one horse, and optionally for a single map:
 
 Races Participated
 Races won
@@ -35,18 +35,20 @@ Since last win
 ### mapstats.py
 ##### python3 mapstats.py [MAP_CODE or ALL]
 
-This program runs stats for maps, or optionally for every map:
+This script runs stats for maps, or optionally for every map:
 
 Amount of races
 Most wins
 Highest Win Percentage
+Longest Race Time
+Shortest Race Time
 
-Critically, this program doesn't handle ties. If 2+ horses have the same win percent or most wins, it only shows the first horse.
+Critically, this script doesn't handle ties. If 2+ horses have the same win percent or most wins, it only shows the first horse.
 
 ### metstats.py
 ##### python3 metstats.py [MAP_CODE or ALL]
 
-This program is a joke, and just gives the same stats of mapstats.py, but with MET as if she won 100% of all races.
+This script is a joke, and just gives the same stats of mapstats.py, but with MET as if she won 100% of all races.
 
 ### racingstats.py
 ##### python3 racingstats.py [MAP_CODE] [g/h] [generation number or list of horses]
