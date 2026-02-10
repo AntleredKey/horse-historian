@@ -16,7 +16,7 @@ Having a "Since last win" to help trigger gambler's fallacy, for example.
 honses.csv is the original file given to me by the Crown Prix developer, SteffanDonal - Additional races just get added to the races table, but I wanted to keep the original.
 horseraces.db features the table races which is mostly just reformatted honses.csv, and horsesInRace which is it expanded for easier stats calculation.
 
-## scripts
+## Scripts
 ### update.py
 ##### python3 update.py
 
