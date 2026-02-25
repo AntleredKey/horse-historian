@@ -9,5 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
-#dumb notes
+# dumb notes
 dumbnotes.txt
+
+# Code-generated files
+weekly.txt

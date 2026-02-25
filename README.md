@@ -13,7 +13,8 @@ Anyone with less than 1000 chips at the start of the week goes up to that maximu
 Another consideration while making this was to approach this as if it was authentic horse racing / gambling. 
 Having a "Since last win" to help trigger gambler's fallacy, for example.
 
-honses.csv is the original file given to me by the Crown Prix developer, SteffanDonal - Additional races just get added to the races table, but I wanted to keep the original.
+In the past_csv dir, there is honses1.csv which served as the basis of this project. It was given to me by the Crown Prix developer, SteffanDonal - Additional races just get added to the races table, but I wanted to keep the original.
+honses2.csv was a later addition.
 horseraces.db features the table races which is mostly just reformatted honses.csv, and horsesInRace which is it expanded for easier stats calculation.
 
 ## Scripts
@@ -65,3 +66,22 @@ Most Races Participated
 Longest Since Win
 
 It also handles ties for every stat!
+
+### weekly.py
+##### python3 weekly.py [YYYY-MM-DD]
+
+This creates a weekly.txt file for Crown Pix Weekly Winners. It outputs every race from that date (including that date) to present because I couldn't figure out weeks, and if there was a world record time.
+
+YYYY-MM-DD - [horse_code] with a time of [duration] on [map], <'WORLD RECORD!!' if WR>
+
+## Program
+
+Named in files as App.py this is an attempt to merge the above scripts into a single program with a GUI.
+
+### List
+
+This, functionally, just merges mapstats.py and singlehorse.py but they were reworked to accept more than just "one map or all maps".
+
+### Compare
+
+This is an expansion on racingstats.py ... Previously, racingstats.py only accepted a single map and with 2+ horses, but this expansion allows 0 to 3 maps and 0 to 12 horses (with some resulting in errors). There was an attempt to make things intuitive and for as little errors as possible to be thrown, but you can't really "compare" a single horse.
