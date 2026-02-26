@@ -1,5 +1,5 @@
 import sys
-
+from app_updatedb import updatedb
 from app_compare import compare
 from app_list import list
 from PySide6.QtCore import QSize, Qt
@@ -163,6 +163,7 @@ class CustomDialog(QDialog):
 
         self.setLayout(layout1)
 
+updatedb()
 app = QApplication(sys.argv)
 window = MainWindow()
 window.show()

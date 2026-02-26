@@ -474,12 +474,10 @@ def compare(maps, horses_list):
                     elif since_win_count == longest_since:
                         horse_ls.append(horsemap_name)
                 conn.close()
-            
             str1 = f"Most Wins: {most_wins} on {horse_mw}\n"
             str2 = f"Best Win Percentage: {best_wp}% on {horse_bwp}\n"
             str3 = f"Least Wins: {least_wins} on {horse_lw}\n"
             str4 = f"Worst Win Percentage: {worst_wp}% on {horse_wwp}\n"
             str5 = f"Most Races Participated: {most_totalraces} on {most_racehorse}\n"
             str6 = f"Longest Since Win: {longest_since} on {horse_ls}"
-
             return (str1 + str2 + str3 + str4 + str5 + str6)
