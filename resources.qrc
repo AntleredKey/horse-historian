@@ -1,0 +1,49 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="graphics">
+        <file alias="favicon">favicon.ico</file>
+
+        <file alias="level1on">graphics/level1on.png</file>
+        <file alias="level1off">graphics/level1off.png</file>
+        <file alias="level2on">graphics/level2on.png</file>
+        <file alias="level2off">graphics/level2off.png</file>
+        <file alias="level3on">graphics/level3on.png</file>
+        <file alias="level3off">graphics/level3off.png</file>
+
+        <file alias="gen1on">graphics/gen1on.png</file>
+        <file alias="gen1off">graphics/gen1off.png</file>
+        <file alias="gen2on">graphics/gen2on.png</file>
+        <file alias="gen2off">graphics/gen2off.png</file>
+
+        <file alias="liston">graphics/listOn.png</file>
+        <file alias="listoff">graphics/listOff.png</file>
+        <file alias="compareon">graphics/compareOn.png</file>
+        <file alias="compareoff">graphics/compareOff.png</file>
+
+        <file alias="DDDon">graphics/DDDon.png</file>
+        <file alias="DDDoff">graphics/DDDoff.png</file>
+        <file alias="FLPon">graphics/FLPon.png</file>
+        <file alias="FLPoff">graphics/FLPoff.png</file>
+        <file alias="GUNon">graphics/GUNon.png</file>
+        <file alias="GUNoff">graphics/GUNoff.png</file>
+        <file alias="LFSon">graphics/LFSon.png</file>
+        <file alias="LFSoff">graphics/LFSoff.png</file>
+        <file alias="LWNon">graphics/LWNon.png</file>
+        <file alias="LWNoff">graphics/LWNoff.png</file>
+        <file alias="METon">graphics/METon.png</file>
+        <file alias="METoff">graphics/METoff.png</file>
+        <file alias="PSNon">graphics/PSNon.png</file>
+        <file alias="PSNoff">graphics/PSNoff.png</file>
+        <file alias="SFEon">graphics/SFEon.png</file>
+        <file alias="SFEoff">graphics/SFEoff.png</file>
+        <file alias="SJUon">graphics/SJUon.png</file>
+        <file alias="SJUoff">graphics/SJUoff.png</file>
+        <file alias="SUNon">graphics/SUNon.png</file>
+        <file alias="SUNoff">graphics/SUNoff.png</file>
+        <file alias="VOIDon">graphics/VOIDon.png</file>
+        <file alias="VOIDoff">graphics/VOIDoff.png</file>
+        <file alias="WSYon">graphics/WSYon.png</file>
+        <file alias="WSYoff">graphics/WSYoff.png</file>
+
+    </qresource>
+</RCC>

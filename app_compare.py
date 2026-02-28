@@ -21,7 +21,6 @@ def compare(maps, horses_list):
     # If 0 horses are selected.
     if len(horse_list) == 0:
         if len(map_list) == 0:
-            print("wahoo")
             longest_since = 0
             horse_ls = []
             conn = sqlite3.connect('./horseraces.db')
@@ -53,7 +52,7 @@ def compare(maps, horses_list):
             str6 = f"Longest Since Win: {horse_ls} with {longest_since} races"
             return (str1 + str2 + str3 + str4 + str5 + str6)
         if len(map_list) == 1:
-            return ("Cannot compare only 1 map.\nPlease select multiple or use List.")
+            return ("Cannot compare only one map!\nPlease select multiple or use List!")
         if len(map_list) > 1:
             most_races = 0
             most_mraces = []
@@ -161,10 +160,9 @@ def compare(maps, horses_list):
 
     # If 0 maps are selected.
     if len(map_list) == 0:
-        # 0 horses and 0 maps are on line 21
         if len(horse_list) == 1:
-                return ("Only one horse selected!\nSelect multiple horses, or use List.")
-        if len(horse_list) < 1:
+                return ("Cannot compare only one horse!\nPlease select multiple or use List!")
+        if len(horse_list) > 1:
             #print(f"==== Comparing Stats for {horse_list} on all maps ====")
             best_wp = 0.0
             horse_bwp = []
@@ -238,14 +236,13 @@ def compare(maps, horses_list):
             str4 = f"Worst Win Percentage: {worst_wp}% by {horse_wwp}\n"
             str5 = f"Most Races Participated: {most_totalraces} by {most_racehorse}\n"
             str6 = f"Longest Since Win: {longest_since} by {horse_ls}"
-
             return (str1 + str2 + str3 + str4 + str5 + str6)
         return ("Please contact customer support. I have no idea what you did.")
 
     # If 1 map is selected.
     if len(map_list) == 1:
         if len(horse_list) == 1:
-            return ("Only one horse selected!\nSelect multiple horses, or use List.")
+            return ("Cannot compare only one map/horse!\nPlease select multiple (either horse or map) or use List!")
         if len(horse_list) > 1:
             #print(f"==== Calculating Stats for {horse_list} on map {map_names[maps.index(map_list)]} ====")
             best_winpercentage = 0.0
@@ -405,7 +402,6 @@ def compare(maps, horses_list):
 
             return (str1 + str2 + str3 + str4 + str5 + str6)  
         if len(horse_list) > 1:
-            print("yippee but more")
             best_wp = 0.0
             horse_bwp = []
             worst_wp = 100.0
@@ -474,10 +470,13 @@ def compare(maps, horses_list):
                     elif since_win_count == longest_since:
                         horse_ls.append(horsemap_name)
                 conn.close()
+            
             str1 = f"Most Wins: {most_wins} on {horse_mw}\n"
             str2 = f"Best Win Percentage: {best_wp}% on {horse_bwp}\n"
             str3 = f"Least Wins: {least_wins} on {horse_lw}\n"
             str4 = f"Worst Win Percentage: {worst_wp}% on {horse_wwp}\n"
             str5 = f"Most Races Participated: {most_totalraces} on {most_racehorse}\n"
             str6 = f"Longest Since Win: {longest_since} on {horse_ls}"
+
             return (str1 + str2 + str3 + str4 + str5 + str6)
+        return ("Please contact customer support. I have no idea what you did.")
