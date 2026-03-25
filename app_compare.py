@@ -1,5 +1,6 @@
 import sys
 import sqlite3
+import datetime
 horses = ["FLP", "DDD", "WSY", "MET", "LFS", "SFE", "GUN", "LWN", "SUN", "PSN", "SJU", "VOD", "VOID"]
 gen0 = ["FLP", "DDD", "WSY", "MET", "LFS", "SFE", "GUN", "LWN", "SUN", "PSN", "SJU", "VOD"]
 gen1 = ["DDD", "FLP", "LFS", "MET", "SFE", "WSY"]
@@ -12,7 +13,7 @@ dict_map = {1: "Pools", 2: "Vyral_CBT", 3: "Reya_Castle"}
 
 def compare(maps, horses_list):
     map_list = []
-    # Convert map names to codes
+    # Convert map names to codes@
     for map in maps:
         map_list.append(int(map_dict[map]))
 
@@ -148,12 +149,18 @@ def compare(maps, horses_list):
                         worst_wp.append(f"{horse_code} on {map_name}")
             conn.close()
 
+            td_lrt = datetime.timedelta(seconds=longest_race_time)
+            formatted_lrt = str(td_lrt)
+
+            td_srt = datetime.timedelta(seconds=shortest_race_time)
+            formatted_srt = str(td_srt)
+
             str1 = f"Map Raced on the Most: {most_mraces} with {most_races} races\n"
             str2 = f"Map Raced on the Least: {least_mraces} with {least_races} races\n"
             str3 = f"Best Win Percentage: {best_winpercentage}% by {best_wp}\n"
             str4 = f"Worst Win Percentage: {worst_winpercentage}% by {worst_wp}\n"
-            str5 = f"Longest Race Time: {longest_race_time}s by {longest_race_horse} on {longest_race_date} in race {longest_race_id} on {longest_race_level}\n"
-            str6 = f"Shortest Race Time: {shortest_race_time}s by {shortest_race_horse} on {shortest_race_date} in race {shortest_race_id} on {shortest_race_level}"
+            str5 = f"Longest Race Time: {formatted_lrt[2:10]} by {longest_race_horse} on {longest_race_date} in race {longest_race_id} on {longest_race_level}\n"
+            str6 = f"Shortest Race Time: {formatted_srt[2:10]} by {shortest_race_horse} on {shortest_race_date} in race {shortest_race_id} on {shortest_race_level}"
 
             return (str1 + str2 + str3 + str4 + str5 + str6)
         return ("Please contact customer support. I have no idea what you did.")
