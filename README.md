@@ -5,7 +5,7 @@ Reya, off the cuff, suggested having a way to run stats to offer better analyst 
 
 ## Background
 [LongLiveReya](https://www.twitch.tv/longlivereya) is a twitch streamer who saw a "Horse Race Test" game on twitter. 
-The game is simple, using the same logic of a dvd-logo bouncing, but with multiple maps and horses.
+The game is simple, using the same logic of a dvd-logo bouncing, but with multiple maps and "horses".
 Whichever horse reaches the "goal" object wins.
 As a way to incentivize interaction, theres a fictional "betting" system.
 Anyone with less than 1000 chips at the start of the week goes up to that maximum so they can continue betting, with no way to get more or spend chips.
@@ -14,14 +14,15 @@ Another consideration while making this was to approach this as if it was authen
 Having a "Since last win" to help trigger gambler's fallacy, for example.
 
 In the past_csv dir, there is honses1.csv which served as the basis of this project. It was given to me by the Crown Prix developer, SteffanDonal - Additional races just get added to the races table, but I wanted to keep the original.
-honses2.csv was a later addition.
+honses2.csv was a later addition I used to be sure I wasn't missing any races.
 horseraces.db features the table races which is mostly just reformatted honses.csv, and horsesInRace which is it expanded for easier stats calculation.
 
 ## Scripts
 ### update.py
 ##### python3 update.py
 
-This script updates the horsesInRace table to include new races added. It first checks if there are any new races before adding them in.
+This is a helper script to make updating horseraces.db easier.
+New races get added to the races table, and this script adds them to the horsesInRace table. It first checks to be sure there are new races to be added, and then updates.
 
 ### singlehorse.py
 ##### python3 singlehorse.py [HORSE_CODE] <MAP_CODE>
@@ -79,9 +80,18 @@ YYYY-MM-DD - [horse_code] with a time of [duration] on [map], <'WORLD RECORD!!' 
 Named in files as App.py this is an attempt to merge the above scripts into a single program with a GUI.
 
 ### List
+or, in files, app_list.py
 
 This, functionally, just merges mapstats.py and singlehorse.py but they were reworked to accept more than just "one map or all maps".
 
 ### Compare
+or, in files, app_compare.py
 
 This is an expansion on racingstats.py ... Previously, racingstats.py only accepted a single map and with 2+ horses, but this expansion allows 0 to 3 maps and 0 to 12 horses (with some resulting in errors). There was an attempt to make things intuitive and for as little errors as possible to be thrown, but you can't really "compare" a single horse.
+
+### testing_app.py
+
+This is a helper script made because of a bug accidentally introduced in release v1.0.2
+Hopefully this will make verification of code easier for any new changes made..
+
+It checks 13 different inputs to app_list.py and app_compare.py and makes sure the strings received match.

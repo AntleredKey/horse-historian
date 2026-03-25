@@ -48,7 +48,7 @@ def list(maps, horses_list):
     if len(horse_list) == 0:
         # If there are no maps passed in, assume ALL maps.
         if len(maps) == 0:
-            print("no horses or maps selected")
+            #print("no horses or maps selected")
             for map in map_codes:
                 result = nohorse(final_result, map)
                 #final_result.append(result)
