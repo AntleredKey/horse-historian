@@ -224,7 +224,8 @@ class CustomDialog(QDialog):
 
         chars_to_remove = "[]'"
         translation_table = str.maketrans('', '', chars_to_remove)
-        new_string = calculatedStats.translate(translation_table)
+        removed_string = calculatedStats.translate(translation_table)
+        new_string = removed_string.replace("VOD", "VOID")
 
         self.setWindowTitle("Calculated Stats")
 
