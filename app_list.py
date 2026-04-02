@@ -69,11 +69,11 @@ def list(maps, horses_list):
             horse_collection.append(result)
         horse_collection.sort(key=lambda Horse: Horse.winPercentage, reverse=True)
         for horse in horse_collection:
-            final_result.append(f"==== Stats for {horse.name} ====")
-            final_result.append(f"Races participated: {horse.participate}")
-            final_result.append(f"Races won: {horse.won}")
-            final_result.append(f"Win percentage: {horse.winPercentage}")
-            final_result.append(f"Since last win: {horse.since} races ago\n")
+            final_result.append(f"""==== Stats for {horse.name} ====
+Races participated: {horse.participate}
+Races won: {horse.won}
+Win percentage: {horse.winPercentage}
+Since last win: {horse.since} races ago\n""")
         return ("\n".join(final_result))
 
     # If 2 or more maps are selected.
@@ -85,11 +85,11 @@ def list(maps, horses_list):
                 horse_collection.append(result)
         horse_collection.sort(key=lambda HorseMap: HorseMap.winPercentage, reverse=True)
         for horse in horse_collection:
-            final_result.append(f"==== Stats for {horse.name} on {horse.mapName} ====")
-            final_result.append(f"Races participated: {horse.participate}")
-            final_result.append(f"Races won: {horse.won}")
-            final_result.append(f"Map Win percentage: {horse.winPercentage}")
-            final_result.append(f"Since last win: {horse.since} races ago\n")
+            final_result.append(f"""==== Stats for {horse.name} on {horse.mapName} ====
+Races participated: {horse.participate}
+Races won: {horse.won}
+Map Win percentage: {horse.winPercentage}
+Since last win: {horse.since} races ago\n""")
         return ("\n".join(final_result))
     return ("Please contact customer support. I have no idea what you did.")
 
@@ -116,7 +116,6 @@ def nohorse(final_result, map):
         cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map}');")
         since_win = cursor.fetchone()[0]
         loss_count = raced_count - winning_count
-
 
         if since_win > longest_since_win:
             longest_since_win = since_win
@@ -159,15 +158,15 @@ def nohorse(final_result, map):
     formatted_shortest_race_time = datetime.timedelta(seconds=shortest_race_time)
     str_srt = str(formatted_shortest_race_time)
     
-    final_result.append(f"==== Stats for {map_name} ====")
-    final_result.append(f"Amount of Races: {race_count}")
-    final_result.append(f"Highest Win Percentage: {best_wphorse} with {best_wp}%")
-    final_result.append(f"Most Wins: {best_wchorse} with {best_wc}")
-    final_result.append(f"Least Wins: {least_wchorse} with {least_wc}")
-    final_result.append(f"Most Losses: {most_lhorse} with {most_losses}")
-    final_result.append(f"Longest Since Win: {horse_longest_win} with {longest_since_win} races")
-    final_result.append(f"Longest Race Time: {str_lrt[2:10]} by {longest_race_horse} on {longest_race_date} in race {longest_race_id}")
-    final_result.append(f"Shortest Race Time: {str_srt[2:10]} by {shortest_race_horse} on {shortest_race_date} in race {shortest_race_id}\n")
+    final_result.append(f"""==== Stats for {map_name} ====
+Amount of Races: {race_count}
+Highest Win Percentage: {best_wphorse} with {best_wp}%
+Most Wins: {best_wchorse} with {best_wc}
+Least Wins: {least_wchorse} with {least_wc}
+Most Losses: {most_lhorse} with {most_losses}
+Longest Since Win: {horse_longest_win} with {longest_since_win} races
+Longest Race Time: {str_lrt[2:10]} by {longest_race_horse} on {longest_race_date} in race {longest_race_id}
+Shortest Race Time: {str_srt[2:10]} by {shortest_race_horse} on {shortest_race_date} in race {shortest_race_id}\n""")
     return(final_result)
 
 def nomap(final_result, horse_code):
