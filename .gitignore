@@ -9,9 +9,10 @@ wheels/
 # Virtual environments
 .venv
 
-# dumb notes
+# dumb notes or wips
 dumbnotes.txt
 csvtodb.py
+website/
 
 # Code-generated files
 weekly.txt
