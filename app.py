@@ -1,10 +1,11 @@
 import sys, os
+import json
 from app_updatedb import updatedb
 from app_compare import compare
 from app_list import list
 from PySide6 import QtGui 
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QToolButton, QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QDialogButtonBox, QDialog, QTextEdit
+from PySide6.QtWidgets import QToolButton, QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QDialogButtonBox, QDialog, QTextEdit, QMenu
 from PySide6.QtGui import QIcon, QFont, QPixmap, QAction
 import resources
 
@@ -175,12 +176,25 @@ class MainWindow(QMainWindow):
 
         layout1.addLayout( layout5 )
 
+        self.context_menu = QMenu(self)
+        action1 = self.context_menu.addAction("Options")
+        action1.triggered.connect(self.openOptions)
+
         widget = QWidget()
         widget.setLayout(layout1)
         app_font = QFont('Arial', 24)
         widget.setFont(app_font)
         widget.setStyleSheet("background-color: #6398d1;")
         self.setCentralWidget(widget)
+
+    # Right Click menu
+    def contextMenuEvent(self, event):
+        self.context_menu.exec(event.globalPos())
+
+    def openOptions(self):
+        dlg = OptionsWindow()
+        dlg.exec()
+
 
     # Connecting Generation 1 parent to children
     def sync_children_to_gen1(self):
@@ -199,6 +213,8 @@ class MainWindow(QMainWindow):
     def sync_gen2_to_children(self):
         all_checked = all(btn.isChecked() for btn in self.buttonGeneration2children)
         self.buttonGeneration2.setChecked(all_checked)
+
+
     def buttonListClicked(self):
         maps, horses = self.getCheckedItems()
         dlg = CustomDialog(calculatedStats=list(maps, horses))
@@ -215,6 +231,23 @@ class MainWindow(QMainWindow):
         checked_gen2 = [btn.text() for btn in self.buttonGeneration2children if btn.isChecked()]
         checked_horses = checked_gen1 + checked_gen2
         return checked_maps, checked_horses
+
+class OptionsWindow(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Options")
+
+        layout1 = QVBoxLayout()
+        layout2 = QHBoxLayout()
+        layout3 = QHBoxLayout()
+        layout4 = QHBoxLayout()
+
+        # add "Count Released Yuri?" with y/n
+        # add "Horse min:" with a number-only box, and "max:" with another number-only box.
+        # logic so it actually saves a .json file every time it changes lol...
+        # close button 
+
 
 class CustomDialog(QDialog):
     def __init__(self, calculatedStats):

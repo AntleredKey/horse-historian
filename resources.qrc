@@ -45,5 +45,8 @@
         <file alias="WSYon">graphics/WSYon.png</file>
         <file alias="WSYoff">graphics/WSYoff.png</file>
 
+        <file alias="yuriOn">graphics/yuriOn.png</file>
+        <file alias="yuriOff">graphics/yuriOff.png</file>
+
     </qresource>
 </RCC>
