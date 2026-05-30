@@ -4,12 +4,17 @@ from app_updatedb import updatedb
 from app_compare import compare
 from app_list import list
 from PySide6 import QtGui 
-from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QToolButton, QApplication, QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QDialogButtonBox, QDialog, QTextEdit, QMenu
+from PySide6.QtCore import QSize, Qt, QSettings
+from PySide6.QtWidgets import QToolButton, QApplication, QMainWindow, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QDialogButtonBox, QDialog, QTextEdit, QMenu
 from PySide6.QtGui import QIcon, QFont, QPixmap, QAction
 import resources
 
 #basedir = os.path.dirname(__file__)
+
+####################################################################
+################## REMEMBER TO UNCOMMENT updatedb ##################
+####################################################################
+
 
 mapList = ["Pools", "Vyral_CBT", "Reya_Castle"]
 mapOn = [":/graphics/level1off", ":/graphics/level2off", ":/graphics/level3off"]
@@ -20,6 +25,14 @@ horse1off = [":/graphics/FLPon", ":/graphics/WSYon", ":/graphics/DDDon", ":/grap
 horse2list = ["GUN", "LWN", "SUN", "PSN", "SJU", "VOID"]
 horse2on = [":/graphics/GUNoff", ":/graphics/LWNoff", ":/graphics/SUNoff", ":/graphics/PSNoff", ":/graphics/SJUoff", ":/graphics/VOIDoff"]
 horse2off = [":/graphics/GUNon", ":/graphics/LWNon", ":/graphics/SUNon", ":/graphics/PSNon", ":/graphics/SJUon", ":/graphics/VOIDon"]
+settings = QSettings('AntleredKey', 'HorseHistorian')
+maxHorses = 12
+
+#   settings = {
+#       "CountYuri": True,
+#       "MinHorses": 1,
+#       "MaxHorses": 12
+#   }
 
 try:
     from ctypes import windll
@@ -55,13 +68,6 @@ class MainWindow(QMainWindow):
             layout2.addWidget(btn)
             btn.clicked.connect(self.sync_gen1_to_children)
 
-        """
-        self.Maps = [QPushButton(f"{i}") for i in mapList]
-        for btn in self.Maps:
-            btn.setCheckable(True)
-            layout2.addWidget(btn)
-        """
-
         layout1.addLayout( layout2 )
 
         self.buttonGeneration1 = QToolButton()
@@ -94,14 +100,6 @@ class MainWindow(QMainWindow):
             btn.setCheckable(True)
             layout3.addWidget(btn)
             btn.clicked.connect(self.sync_gen1_to_children)
-                     
-        """
-        self.buttonGeneration1children = [QPushButton(f"{i}") for i in horse1list]
-        for btn in self.buttonGeneration1children:
-            btn.setCheckable(True)
-            layout3.addWidget(btn)
-            btn.clicked.connect(self.sync_gen1_to_children)
-        """
 
         layout1.addLayout( layout3 )
 
@@ -115,12 +113,6 @@ class MainWindow(QMainWindow):
         layout4.addWidget(self.buttonGeneration2)
         self.buttonGeneration2.clicked.connect(self.sync_children_to_gen2)
         
-        """
-        self.buttonGeneration2 = QPushButton("Gen 2")
-        self.buttonGeneration2.setCheckable(True)
-        self.buttonGeneration2.clicked.connect(self.sync_children_to_gen2)
-        layout4.addWidget(self.buttonGeneration2)
-        """
 
         self.buttonGeneration2children = [QToolButton(self) for i in horse2list]
 
@@ -135,14 +127,6 @@ class MainWindow(QMainWindow):
             btn.setCheckable(True)
             layout4.addWidget(btn)
             btn.clicked.connect(self.sync_gen2_to_children)
-
-        """
-        self.buttonGeneration2children = [QPushButton(f"{i}") for i in horse2list]
-        for btn in self.buttonGeneration2children:
-            btn.setCheckable(True)
-            layout4.addWidget(btn)
-            btn.clicked.connect(self.sync_gen2_to_children)
-        """
 
         layout1.addLayout( layout4 )
 
@@ -164,13 +148,6 @@ class MainWindow(QMainWindow):
         self.buttonCompare.setCheckable(True)
         self.buttonCompare.clicked.connect(self.buttonCompareClicked)
 
-        """
-        self.buttonList = QPushButton("List")
-        self.buttonList.clicked.connect(self.buttonListClicked)
-        self.buttonCompare = QPushButton("Compare")
-        self.buttonCompare.clicked.connect(self.buttonCompareClicked)
-        """
-
         layout5.addWidget(self.buttonList)
         layout5.addWidget(self.buttonCompare)
 
@@ -179,6 +156,7 @@ class MainWindow(QMainWindow):
         self.context_menu = QMenu(self)
         action1 = self.context_menu.addAction("Options")
         action1.triggered.connect(self.openOptions)
+        #self.checkSettings()
 
         widget = QWidget()
         widget.setLayout(layout1)
@@ -194,7 +172,6 @@ class MainWindow(QMainWindow):
     def openOptions(self):
         dlg = OptionsWindow()
         dlg.exec()
-
 
     # Connecting Generation 1 parent to children
     def sync_children_to_gen1(self):
@@ -217,12 +194,14 @@ class MainWindow(QMainWindow):
 
     def buttonListClicked(self):
         maps, horses = self.getCheckedItems()
-        dlg = CustomDialog(calculatedStats=list(maps, horses))
+        settingsdict = self.getSettings()
+        dlg = CustomDialog(calculatedStats=list(maps, horses, settingsdict))
         dlg.exec()
         self.buttonList.setChecked(False)
     def buttonCompareClicked(self):
         maps, horses = self.getCheckedItems()
-        dlg = CustomDialog(calculatedStats=compare(maps, horses))
+        settingsdict = self.getSettings()
+        dlg = CustomDialog(calculatedStats=compare(maps, horses, settingsdict))
         dlg.exec()
         self.buttonCompare.setChecked(False)
     def getCheckedItems(self):
@@ -231,22 +210,135 @@ class MainWindow(QMainWindow):
         checked_gen2 = [btn.text() for btn in self.buttonGeneration2children if btn.isChecked()]
         checked_horses = checked_gen1 + checked_gen2
         return checked_maps, checked_horses
+    
+    def getSettings(self):
+        yuristate = settings.value('CountYuri', True, type=bool)
+        minhorsestate = settings.value('MinHorses', 1, type=str)
+        maxhorsestate = settings.value('MaxHorses', maxHorses, type=str)
+        settingsDict = {
+            'CountYuri': yuristate,
+            'MinHorses': minhorsestate,
+            'MaxHorses': maxhorsestate
+        }
+        return settingsDict
 
 class OptionsWindow(QDialog):
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("Options")
+        self.setStyleSheet("background-color: #6398d1;")
+        self.setFixedSize(QSize(332, 203))
+        self.PreviousMin = 1
+        self.PreviousMax = maxHorses
 
         layout1 = QVBoxLayout()
         layout2 = QHBoxLayout()
         layout3 = QHBoxLayout()
         layout4 = QHBoxLayout()
 
+        self.YuriLabel = QLabel("Count Released Yuri:")
+        layout2.addWidget(self.YuriLabel)
+
+        self.YuriButton = QToolButton()
+        YuriIcon = QIcon()
+        YuriIcon.addFile(":/graphics/yuriOn", QSize(), QIcon.Normal, QIcon.Off)
+        YuriIcon.addFile(":/graphics/yuriOff", QSize(), QIcon.Normal, QIcon.On)
+        self.YuriButton.setIcon(YuriIcon)
+        self.YuriButton.setIconSize(QSize(70, 83))
+        self.YuriButton.setCheckable(True)
+        layout2.addWidget(self.YuriButton)
+        self.YuriButton.clicked.connect(self.YuriClicked)
+
+        layout1.addLayout( layout2 )
+
+        self.MinLabel = QLabel("Minimum Horses:")
+        layout3.addWidget(self.MinLabel)
+
+        self.MinEdit = QLineEdit()
+        self.MinEdit.setMaxLength(2)
+        self.MinEdit.editingFinished.connect(self.MinEdited)
+        layout3.addWidget(self.MinEdit)
+
+        self.MaxLabel = QLabel("Maximum Horses:")
+        layout3.addWidget(self.MaxLabel)
+
+        self.MaxEdit = QLineEdit()
+        self.MaxEdit.setMaxLength(2)
+        self.MaxEdit.editingFinished.connect(self.MaxEdited)
+        layout3.addWidget(self.MaxEdit)
+
+        layout1.addLayout( layout3 )
+
+        QBtn = (
+            QDialogButtonBox.Close
+        )
+
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        layout4.addWidget(self.buttonBox)
+        layout1.addLayout( layout4 )
+
         # add "Count Released Yuri?" with y/n
         # add "Horse min:" with a number-only box, and "max:" with another number-only box.
         # logic so it actually saves a .json file every time it changes lol...
         # close button 
+
+        self.setLayout(layout1)
+        self.load_settings()
+
+    def YuriClicked(self):
+        state = self.YuriButton.isChecked()
+        settings.setValue('CountYuri', state)
+        print(state)
+
+    def MinEdited(self):
+        if self.MinEdit.text() == "":
+            return
+        try:
+            numberMin = int(self.MinEdit.text())
+            if numberMin <= int(self.PreviousMax) and numberMin > 0:
+                settings.setValue('MinHorses', numberMin)
+                self.PreviousMin = numberMin
+                print(numberMin)
+                return
+            else:
+                self.MinEdit.setText(f"{self.PreviousMin}")
+                return
+        except ValueError:
+            self.MinEdit.setText(f"{self.PreviousMin}")
+            return
+    
+    def MaxEdited(self):
+        if self.MaxEdit.text() == "":
+            return
+        try:
+            numberMax = int(self.MaxEdit.text())
+            if numberMax >= int(self.PreviousMin) and numberMax <= maxHorses:
+                settings.setValue('MaxHorses', numberMax)
+                self.PreviousMax = numberMax
+                print(numberMax)
+                return
+            else:
+                self.MaxEdit.setText(f"{self.PreviousMax}")
+                return
+        except ValueError:
+            self.MaxEdit.setText(f"{self.PreviousMax}")
+            return
+    
+    def load_settings(self):
+        yuristate = settings.value('CountYuri', True, type=bool)
+        minhorsestate = settings.value('MinHorses', 1, type=str)
+        maxhorsestate = settings.value('MaxHorses', maxHorses, type=str)
+        self.PreviousMin = minhorsestate
+        self.PreviousMax = maxhorsestate
+        self.YuriButton.setChecked(yuristate)
+        self.MinEdit.setText(minhorsestate)
+        self.MaxEdit.setText(maxhorsestate)
+
+
 
 
 class CustomDialog(QDialog):
@@ -301,7 +393,8 @@ class CustomDialog(QDialog):
 
         self.setLayout(layout1)
 
-updatedb()
+
+#updatedb()
 app = QApplication(sys.argv)
 app.setStyleSheet("QToolButton { border: none; background: transparent; }")
 app.setWindowIcon(QtGui.QIcon(":/graphics/favicon"))

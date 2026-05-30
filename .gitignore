@@ -13,6 +13,7 @@ wheels/
 dumbnotes.txt
 csvtodb.py
 website/
+stupid/
 
 # Code-generated files
 weekly.txt

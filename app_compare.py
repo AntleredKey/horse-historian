@@ -11,13 +11,21 @@ map_names = ["pools", "vyral_cbt", "reya_castle"]
 map_dict = {"Pools": "1", "Vyral_CBT": "2", "Reya_Castle": "3"}
 dict_map = {1: "Pools", 2: "Vyral_CBT", 3: "Reya_Castle"}
 
-def compare(maps, horses_list):
+def compare(maps, horses_list, settings):
     map_list = []
     # Convert map names to codes@
     for map in maps:
         map_list.append(int(map_dict[map]))
 
     horse_list = [item.replace("VOID", "VOD") for item in horses_list]
+    setYuri = not settings["CountYuri"]
+    setMin = settings["MinHorses"]
+    setMax = settings["MaxHorses"]
+
+    if setYuri == False:
+        settingsString = f"Calculated with Released Yuri not allowed, between {setMin} and {setMax} Horses\n"
+    else:
+        settingsString = f"Calculated with Released Yuri allowed, between {setMin} and {setMax} Horses\n"
 
     # If 0 horses are selected.
     if len(horse_list) == 0:
@@ -26,32 +34,39 @@ def compare(maps, horses_list):
             horse_ls = []
             conn = sqlite3.connect('./horseraces.db')
             cursor = conn.cursor()
-            cursor.execute(f"select count(*) from races;")
+            cursor.execute(f"select count(*) from races where HorseCount between {setMin} and {setMax};")
             total_races = cursor.fetchone()[0]
-            cursor.execute(f"select horse, count(*) as count from horsesInRace group by horse order by count desc;")
+            if total_races == 0:
+                return (settingsString + "No races found for search results")
+            print(total_races)
+            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where races.HorseCount between {setMin} and {setMax} group by horsesInRace.horse order by count desc;")
             horse_mp, most_participated = cursor.fetchone()
-            cursor.execute(f"select horse, count(*) as count from horsesInRace where wonRace = 1 group by horse order by count desc;")
+            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.wonRace = 1 and races.HorseCount between {setMin} and {setMax} group by horsesInRace.horse order by count desc;")
             horse_mw, most_wins = cursor.fetchone()
-            cursor.execute(f"select horse, count(*) as count from horsesInRace where wonRace = 1 group by horse order by count asc limit 1;")
+            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.wonRace = 1 and races.HorseCount between {setMin} and {setMax} group by horsesInRace.horse order by count asc limit 1;")
             horse_lw, least_wins = cursor.fetchone()
 
-            cursor.execute(f"select horse, count(*) as count from horsesInRace where wonRace = 0 group by horse order by count desc;")
-            horse_ml, most_losses = cursor.fetchone()
+            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.wonRace = 0 and races.HorseCount between {setMin} and {setMax} group by horsesInRace.horse order by count desc;")
+            try:
+                horse_ml, most_losses = cursor.fetchone()
+                str5 = f"Most Losses: {horse_ml} with {most_losses}\n"
+            except:
+                str5 = f"Most Losses: N/A.\n"
             for horse_code in gen0:
-                cursor.execute(f"SELECT COUNT(*) FROM races WHERE horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%');")
+                cursor.execute(f"SELECT COUNT(*) FROM races WHERE horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%') and HorseCount between {setMin} and {setMax};")
                 since_win = cursor.fetchone()[0]
                 if since_win > longest_since:
                     longest_since = since_win
                     horse_ls = [horse_code]
                 elif since_win == longest_since:
                     horse_ls.append(horse_code)
+
             str1 = f"Total Races: {total_races}\n"
             str2 = f"Most Races Participated: {horse_mp} with {most_participated}\n"
             str3 = f"Most Wins: {horse_mw} with {most_wins}\n"
             str4 = f"Least Wins: {horse_lw} with {least_wins}\n"
-            str5 = f"Most Losses: {horse_ml} with {most_losses}\n"
             str6 = f"Longest Since Win: {horse_ls} with {longest_since} races"
-            return (str1 + str2 + str3 + str4 + str5 + str6)
+            return (settingsString + str1 + str2 + str3 + str4 + str5 + str6)
         if len(map_list) == 1:
             return ("Cannot compare only one map!\nPlease select multiple or use List!")
         if len(map_list) > 1:
@@ -81,7 +96,7 @@ def compare(maps, horses_list):
             cursor = conn.cursor()
             for map in map_list:
                 map_name = dict_map[map]
-                cursor.execute(f"select count(*) from races where level = '{map}';")
+                cursor.execute(f"select count(*) from races where level = '{map}' and HorseCount between {setMin} and {setMax};")
                 race_count = cursor.fetchone()[0]
                 if race_count > most_races:
                     most_races = race_count
@@ -94,8 +109,14 @@ def compare(maps, horses_list):
                 elif race_count == least_races:
                     least_mraces.append(map_name)
 
-                cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' order by duration desc;")
-                maplongest_ri, maplongest_rh, maplongest_rt, maplongest_rd = cursor.fetchone()
+                try:
+                    cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' and HorseCount between {setMin} and {setMax} order by duration desc;")
+                    maplongest_ri, maplongest_rh, maplongest_rt, maplongest_rd = cursor.fetchone()
+                except:
+                    maplongest_ri = 000
+                    maplongest_rh = "MLP"
+                    maplongest_rt = 0
+                    maplongest_rd = "2022-10-25"
 
                 rounded_maplongest_rt = round(maplongest_rt, 2)
                 if rounded_maplongest_rt > longest_race_time:
@@ -104,10 +125,16 @@ def compare(maps, horses_list):
                     longest_race_horse = maplongest_rh
                     longest_race_date = maplongest_rd
                     longest_race_level = map_name
-                cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' order by duration asc;")
 
-                mapshortest_ri, mapshortest_rh, mapshortest_rt, mapshortest_rd = cursor.fetchone()
-
+                try:
+                    cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' and HorseCount between {setMin} and {setMax} order by duration asc;")
+                    mapshortest_ri, mapshortest_rh, mapshortest_rt, mapshortest_rd = cursor.fetchone()
+                except:
+                    mapshortest_ri = 000
+                    mapshortest_rh = "MLP"
+                    mapshortest_rt = 36000
+                    mapshortest_rd = "2022-10-25"
+                
                 mapshortest_rt = round(mapshortest_rt, 2)
                 rounded_mapshortest_rt = round(mapshortest_rt, 2)
                 if rounded_mapshortest_rt < shortest_race_time:
@@ -119,9 +146,9 @@ def compare(maps, horses_list):
                 
                 for horse_code in gen0:
                     #print(f"Calculating stats for {horse_code} on map {map_names[maps.index(map)]}...")
-                    cursor.execute(f"select count(*) from races where level = '{map}' and winningHorse = '{horse_code}';")
+                    cursor.execute(f"select count(*) from races where level = '{map}' and winningHorse = '{horse_code}' and HorseCount between {setMin} and {setMax};")
                     win_count = cursor.fetchone()[0]
-                    cursor.execute(f"select count(*) from races where level = '{map}' and horsesInRace LIKE '%{horse_code}%';")
+                    cursor.execute(f"select count(*) from races where level = '{map}' and horsesInRace LIKE '%{horse_code}%' and HorseCount between {setMin} and {setMax};")
                     race_count = cursor.fetchone()[0]
                     if race_count > 0:
                         win_percentage = (win_count / race_count * 100)
@@ -155,14 +182,26 @@ def compare(maps, horses_list):
             td_srt = datetime.timedelta(seconds=shortest_race_time)
             formatted_srt = str(td_srt)
 
+            if longest_race_horse == "MLP":
+                str5 = "Longest Race Time: N/A\n"
+            else:
+                str5 = f"Longest Race Time: {formatted_lrt[2:10]} by {longest_race_horse} on {longest_race_date} in race {longest_race_id} on {longest_race_level}\n"
+
+            if shortest_race_horse == "MLP":
+                str6 = "Shortest Race Time: N/A\n"
+            else:
+                str6 = f"Shortest Race Time: {formatted_srt[2:10]} by {shortest_race_horse} on {shortest_race_date} in race {shortest_race_id} on {shortest_race_level}"
+
+            if most_races == least_races and most_races == 0:
+                return (settingsString + "No races found for search results")
+
+
             str1 = f"Map Raced on the Most: {most_mraces} with {most_races} races\n"
             str2 = f"Map Raced on the Least: {least_mraces} with {least_races} races\n"
             str3 = f"Best Win Percentage: {best_winpercentage}% by {best_wp}\n"
             str4 = f"Worst Win Percentage: {worst_winpercentage}% by {worst_wp}\n"
-            str5 = f"Longest Race Time: {formatted_lrt[2:10]} by {longest_race_horse} on {longest_race_date} in race {longest_race_id} on {longest_race_level}\n"
-            str6 = f"Shortest Race Time: {formatted_srt[2:10]} by {shortest_race_horse} on {shortest_race_date} in race {shortest_race_id} on {shortest_race_level}"
 
-            return (str1 + str2 + str3 + str4 + str5 + str6)
+            return (settingsString + str1 + str2 + str3 + str4 + str5 + str6)
         return ("Please contact customer support. I have no idea what you did.")
 
     # If 0 maps are selected.
@@ -189,13 +228,13 @@ def compare(maps, horses_list):
                 cursor = conn.cursor()
 
                 #races_participated in
-                cursor.execute(f"select count(*) from horsesInRace where horse = '{horse_code}';")
+                cursor.execute(f"select count(*) from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.horse = '{horse_code}' and races.HorseCount between {setMin} and {setMax};")
                 map_race_count = cursor.fetchone()[0]
 
-                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}';")
+                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and HorseCount between {setMin} and {setMax};")
                 map_win_count = cursor.fetchone()[0]
 
-                cursor.execute(f"SELECT COUNT(*) FROM races WHERE horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%'); ")
+                cursor.execute(f"SELECT COUNT(*) FROM races WHERE horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%') and HorseCount between {setMin} and {setMax}; ")
                 since_win_count = cursor.fetchone()[0]
 
                 if map_race_count > 0:
@@ -237,13 +276,16 @@ def compare(maps, horses_list):
                     horse_ls.append(horse_code)
                 conn.close()
             
+            if most_totalraces == 0:
+                return (settingsString + "No races found for search results")
+
             str1 = f"Most Wins: {most_wins} by {horse_mw}\n"
             str2 = f"Best Win Percentage: {best_wp}% by {horse_bwp}\n"
             str3 = f"Least Wins: {least_wins} by {horse_lw}\n"
             str4 = f"Worst Win Percentage: {worst_wp}% by {horse_wwp}\n"
             str5 = f"Most Races Participated: {most_totalraces} by {most_racehorse}\n"
             str6 = f"Longest Since Win: {longest_since} by {horse_ls}"
-            return (str1 + str2 + str3 + str4 + str5 + str6)
+            return (settingsString + str1 + str2 + str3 + str4 + str5 + str6)
         return ("Please contact customer support. I have no idea what you did.")
 
     # If 1 map is selected.
@@ -272,13 +314,13 @@ def compare(maps, horses_list):
                 cursor = conn.cursor()
 
                 #races_participated in
-                cursor.execute(f"select count(*) from horsesInRace where horse = '{horse_code}' and race_id in (select id from races where level = '{map_list[0]}');")
+                cursor.execute(f"select count(*) from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.horse = '{horse_code}' and horsesInRace.race_id in (select id from races where level = '{map_list[0]}') and races.HorseCount between {setMin} and {setMax};")
                 map_race_count = cursor.fetchone()[0]
 
-                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_list[0]}';")
+                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_list[0]}' and HorseCount between {setMin} and {setMax};")
                 map_win_count = cursor.fetchone()[0]
 
-                cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_list[0]}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_list[0]}'); ")
+                cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_list[0]}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_list[0]}') and HorseCount between {setMin} and {setMax}; ")
                 since_win_count = cursor.fetchone()[0]
 
                 if map_race_count > 0:
@@ -320,13 +362,16 @@ def compare(maps, horses_list):
                     most_sincewinhorse.append(horse_code)
                 conn.close()
             
+            if most_totalraces == 0:
+                return(settingsString + "No races found for search results")
+
             best_winpercentage_str = f"Best Win Percentage: {best_winpercentage}% by {best_wphorse}\n"
             worst_winpercentage_str = f"Worst Win Percentage: {worst_winpercentage}% by {worst_wphorse}\n"
             most_wins_str = f"Most Wins: {most_wins} by {most_winhorse}\n"
             least_wins_str = f"Least Wins: {least_wins} by {least_winhorse}\n"
             most_races_str = f"Most Races Participated: {most_totalraces} by {most_racehorse}\n"
             longest_since_str = f"Longest Since Win: {most_sincewin} by {most_sincewinhorse}"
-            return (best_winpercentage_str + worst_winpercentage_str + most_wins_str + least_wins_str + most_races_str + longest_since_str)
+            return (settingsString + best_winpercentage_str + worst_winpercentage_str + most_wins_str + least_wins_str + most_races_str + longest_since_str)
         return ("Please contact customer support. I have no idea what you did.")
     
     # If 2 or more maps are selected.
@@ -352,13 +397,13 @@ def compare(maps, horses_list):
                 map_name = dict_map[map_code]
 
                 #races_participated in
-                cursor.execute(f"select count(*) from horsesInRace left join races on races.id = horsesInRace.race_id where horsesInRace.horse = '{horse_code}' and races.level = '{map_code}';")
+                cursor.execute(f"select count(*) from horsesInRace left join races on races.id = horsesInRace.race_id where horsesInRace.horse = '{horse_code}' and races.level = '{map_code}' and races.HorseCount between {setMin} and {setMax};")
                 map_race_count = cursor.fetchone()[0]
 
-                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_code}';")
+                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_code}' and HorseCount between {setMin} and {setMax};")
                 map_win_count = cursor.fetchone()[0]
 
-                cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}');")
+                cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}') and HorseCount between {setMin} and {setMax};")
                 since_win_count = cursor.fetchone()[0]
 
                 if map_race_count > 0:
@@ -400,6 +445,9 @@ def compare(maps, horses_list):
                     horse_ls.append(map_name)
                 conn.close()
             
+            if most_totalraces == 0:
+                return (settingsString + "No races found for search results")
+
             str1 = f"Most Wins: {most_wins} on {horse_mw}\n"
             str2 = f"Best Win Percentage: {best_wp}% on {horse_bwp}\n"
             str3 = f"Least Wins: {least_wins} on {horse_lw}\n"
@@ -407,7 +455,7 @@ def compare(maps, horses_list):
             str5 = f"Most Races Participated: {most_totalraces} on {most_racehorse}\n"
             str6 = f"Longest Since Win: {longest_since} on {horse_ls}"
 
-            return (str1 + str2 + str3 + str4 + str5 + str6)  
+            return (settingsString + str1 + str2 + str3 + str4 + str5 + str6)  
         if len(horse_list) > 1:
             best_wp = 0.0
             horse_bwp = []
@@ -430,13 +478,13 @@ def compare(maps, horses_list):
                     horsemap_name = f"{horse_code} on {map_name}"
 
                     #races_participated in
-                    cursor.execute(f"select count(*) from horsesInRace left join races on races.id = horsesInRace.race_id where horsesInRace.horse = '{horse_code}' and races.level = '{map_code}';")
+                    cursor.execute(f"select count(*) from horsesInRace left join races on races.id = horsesInRace.race_id where horsesInRace.horse = '{horse_code}' and races.level = '{map_code}' and races.HorseCount between {setMin} and {setMax};")
                     map_race_count = cursor.fetchone()[0]
 
-                    cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_code}';")
+                    cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_code}' and HorseCount between {setMin} and {setMax};")
                     map_win_count = cursor.fetchone()[0]
 
-                    cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}');")
+                    cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}') and HorseCount between {setMin} and {setMax};")
                     since_win_count = cursor.fetchone()[0]
 
                     if map_race_count > 0:
@@ -478,6 +526,9 @@ def compare(maps, horses_list):
                         horse_ls.append(horsemap_name)
                 conn.close()
             
+            if most_totalraces == 0:
+                return (settingsString + "No races found for search results")
+
             str1 = f"Most Wins: {most_wins} on {horse_mw}\n"
             str2 = f"Best Win Percentage: {best_wp}% on {horse_bwp}\n"
             str3 = f"Least Wins: {least_wins} on {horse_lw}\n"
@@ -485,5 +536,5 @@ def compare(maps, horses_list):
             str5 = f"Most Races Participated: {most_totalraces} on {most_racehorse}\n"
             str6 = f"Longest Since Win: {longest_since} on {horse_ls}"
 
-            return (str1 + str2 + str3 + str4 + str5 + str6)
+            return (settingsString + str1 + str2 + str3 + str4 + str5 + str6)
         return ("Please contact customer support. I have no idea what you did.")

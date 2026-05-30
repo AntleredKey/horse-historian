@@ -35,7 +35,7 @@ class HorseMap:
         return f"{self.name}, {self.map}, {self.participate}, {self.won}, {self.winPercentage}, {self.since}"
 
 
-def list(maps, horses_list):
+def list(maps, horses_list, settings):
     final_result = []
     map_list = []
     # Convert map names to codes
@@ -43,6 +43,15 @@ def list(maps, horses_list):
         map_list.append(int(map_dict[map]))
 
     horse_list = [item.replace("VOID", "VOD") for item in horses_list]
+    setYuri = not settings["CountYuri"]
+    setMin = settings["MinHorses"]
+    setMax = settings["MaxHorses"]
+
+    if setYuri == False:
+        final_result.append(f"Calculated with Released Yuri not allowed, between {setMin} and {setMax} Horses")
+    else:
+        final_result.append(f"Calculated with Released Yuri allowed, between {setMin} and {setMax} Horses")
+
 
     # If 0 horses are selected.
     if len(horse_list) == 0:
@@ -50,14 +59,14 @@ def list(maps, horses_list):
         if len(maps) == 0:
             #print("no horses or maps selected")
             for map in map_codes:
-                result = nohorse(final_result, map)
+                result = nohorse(final_result, map, settings)
                 #final_result.append(result)
             return ("\n".join(final_result))
         
         # If there are maps passed in, only run those... 
         if len(maps) > 0:
             for map in map_list:
-                result = nohorse(final_result, map)
+                result = nohorse(final_result, map, settings)
                 #final_result.append(result)
             return ("\n".join(final_result))
 
@@ -65,11 +74,15 @@ def list(maps, horses_list):
     if len(map_list) == 0:
         horse_collection = []
         for horse_code in horse_list:
-            result = nomap(final_result, horse_code)
+            result = nomap(final_result, horse_code, settings)
             horse_collection.append(result)
         horse_collection.sort(key=lambda Horse: Horse.winPercentage, reverse=True)
         for horse in horse_collection:
-            final_result.append(f"""==== Stats for {horse.name} ====
+            if horse.participate == 0:
+                final_result.append(f"""==== Stats for {horse.name} ====
+No races found for search results\n""")
+            else:
+                final_result.append(f"""==== Stats for {horse.name} ====
 Races participated: {horse.participate}
 Races won: {horse.won}
 Win percentage: {horse.winPercentage}
@@ -81,11 +94,15 @@ Since last win: {horse.since} races ago\n""")
         horse_collection = []
         for map_code in map_list:
             for horse_code in horse_list:
-                result = maphorse(final_result, map_code, horse_code)
+                result = maphorse(final_result, map_code, horse_code, settings)
                 horse_collection.append(result)
         horse_collection.sort(key=lambda HorseMap: HorseMap.winPercentage, reverse=True)
         for horse in horse_collection:
-            final_result.append(f"""==== Stats for {horse.name} on {horse.mapName} ====
+            if horse.participate == 0:
+                final_result.append(f"""==== Stats for {horse.name} on {horse.mapName} ====
+No races found for search results\n""")
+            else:
+                final_result.append(f"""==== Stats for {horse.name} on {horse.mapName} ====
 Races participated: {horse.participate}
 Races won: {horse.won}
 Map Win percentage: {horse.winPercentage}
@@ -93,11 +110,14 @@ Since last win: {horse.since} races ago\n""")
         return ("\n".join(final_result))
     return ("Please contact customer support. I have no idea what you did.")
 
-def nohorse(final_result, map):
+def nohorse(final_result, map, settings):
+    setYuri = not settings["CountYuri"]
+    setMin = int(settings["MinHorses"])
+    setMax = int(settings["MaxHorses"])
     conn = sqlite3.connect('./horseraces.db')
     cursor = conn.cursor()
     map_name = dict_map[map]
-    cursor.execute(f"select count(*) from races where level = '{map}';")
+    cursor.execute(f"select count(*) from races where level = '{map}' and HorseCount between {setMin} and {setMax};")
     race_count = cursor.fetchone()[0]
     best_wc = 0
     best_wp = 0.0
@@ -106,14 +126,17 @@ def nohorse(final_result, map):
     most_losses = 0
     longest_since_win = 0
     horse_longest_win = []
+    best_wphorse = []
+    best_wchorse = []
+    most_lhorse = []
     for horse_code in gen0:
-        cursor.execute(f"select count(winningHorse) as count from races where level = '{map}' and winningHorse like '{horse_code}';")
+        cursor.execute(f"select count(winningHorse) as count from races where level = '{map}' and winningHorse like '{horse_code}' and HorseCount between {setMin} and {setMax};")
         winning_count = cursor.fetchone()[0]
         #print(f"{horse_code} has won {winning_count} times on {map_name}")
-        cursor.execute(f"select count(*) as races from horsesInRace left join races on horsesInRace.race_id = races.id where races.level = '{map}' and horsesInRace.horse like '{horse_code}';")
+        cursor.execute(f"select count(*) as races from horsesInRace left join races on horsesInRace.race_id = races.id where races.level = '{map}' and horsesInRace.horse like '{horse_code}' and races.HorseCount between {setMin} and {setMax};")
         raced_count = cursor.fetchone()[0]
         #print(f"{horse_code} raced {raced_count} on {map_name}")
-        cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map}');")
+        cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map}') and HorseCount between {setMin} and {setMax};")
         since_win = cursor.fetchone()[0]
         loss_count = raced_count - winning_count
 
@@ -149,11 +172,15 @@ def nohorse(final_result, map):
         elif loss_count == most_losses:
             most_lhorse.append(horse_code)
 
-    cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' order by duration desc;")
+    if race_count == 0:
+        final_result.append(f"""==== Stats for {map_name} ====
+No races found for search results\n""")
+        return(final_result)
+    cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' and HorseCount between {setMin} and {setMax} order by duration desc;")
     longest_race_id, longest_race_horse, longest_race_time, longest_race_date = cursor.fetchone()
     formatted_longest_race_time = datetime.timedelta(seconds=longest_race_time)
     str_lrt = str(formatted_longest_race_time)
-    cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' order by duration asc;")
+    cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' and HorseCount between {setMin} and {setMax} order by duration asc;")
     shortest_race_id, shortest_race_horse, shortest_race_time, shortest_race_date = cursor.fetchone()
     formatted_shortest_race_time = datetime.timedelta(seconds=shortest_race_time)
     str_srt = str(formatted_shortest_race_time)
@@ -169,19 +196,22 @@ Longest Race Time: {str_lrt[2:10]} by {longest_race_horse} on {longest_race_date
 Shortest Race Time: {str_srt[2:10]} by {shortest_race_horse} on {shortest_race_date} in race {shortest_race_id}\n""")
     return(final_result)
 
-def nomap(final_result, horse_code):
+def nomap(final_result, horse_code, settings):
+    setYuri = not settings["CountYuri"]
+    setMin = int(settings["MinHorses"])
+    setMax = int(settings["MaxHorses"])
     conn = sqlite3.connect('./horseraces.db')
     cursor = conn.cursor()
 
     #final_result.append(f"==== Stats for {horse_code} ====")
 
     # Number of races participated by the horse
-    cursor.execute(f"select count(*) from horsesInRace where horse = '{horse_code}';")
+    cursor.execute(f"select count(*) from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.horse = '{horse_code}' and races.HorseCount between {setMin} and {setMax};")
     race_count = cursor.fetchone()[0]
     #final_result.append(f"Races participated: {race_count}")
 
     # Number of races won by the horse
-    cursor.execute(f"select count(*) from horsesInRace where horse = '{horse_code}' and wonRace = 1;")
+    cursor.execute(f"select count(*) from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.horse = '{horse_code}' and horsesInRace.wonRace = 1 and races.HorseCount between {setMin} and {setMax};")
     win_count = cursor.fetchone()[0]
     #final_result.append(f"Races won: {win_count}")
 
@@ -194,24 +224,27 @@ def nomap(final_result, horse_code):
         rounded_value = 0
 
     # Last win X races ago
-    cursor.execute(f"SELECT COUNT(*) FROM races WHERE id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%'); ")
+    cursor.execute(f"SELECT COUNT(*) FROM races WHERE id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%') and HorseCount between {setMin} and {setMax}; ")
     since_count = cursor.fetchone()[0]
     #final_result.append(f"Since last win: {since_count} races ago\n")
     conn.close()
     return Horse(horse_code, race_count, win_count, rounded_value, since_count)
 
-def maphorse(final_result, map_code, horse_code):
+def maphorse(final_result, map_code, horse_code, settings):
+    setYuri = not settings["CountYuri"]
+    setMin = int(settings["MinHorses"])
+    setMax = int(settings["MaxHorses"])
     conn = sqlite3.connect('./horseraces.db')
     cursor = conn.cursor()
 
     map_name = dict_map[map_code]
     #final_result.append(f"==== Calculating Stats for {horse_code} on {map_name} ====")
 
-    cursor.execute(f"select count(*) from horsesInRace where horse = '{horse_code}' and race_id in (select id from races where level = '{map_code}');")
+    cursor.execute(f"select count(*) from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.horse = '{horse_code}' and horsesInRace.race_id in (select id from races where level = '{map_code}') and races.HorseCount between {setMin} and {setMax};")
     map_race_count = cursor.fetchone()[0]
     #final_result.append(f"Races participated: {map_race_count}")
 
-    cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_code}';")
+    cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_code}' and HorseCount between {setMin} and {setMax};")
     map_win_count = cursor.fetchone()[0]
     #final_result.append(f"Races won: {map_win_count}")
 
@@ -223,7 +256,7 @@ def maphorse(final_result, map_code, horse_code):
     else:
         rounded_value = 0
 
-    cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}'); ")
+    cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}') and HorseCount between {setMin} and {setMax}; ")
     since_win_count = cursor.fetchone()[0]
     #final_result.append(f"Since last win: {since_win_count} races ago\n")
     conn.close()
