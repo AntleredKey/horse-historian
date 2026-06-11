@@ -24,8 +24,14 @@ def compare(maps, horses_list, settings):
 
     if setYuri == False:
         settingsString = f"Calculated with Released Yuri not allowed, between {setMin} and {setMax} Horses\n"
+        whereYuri = " where YuriReleased = '0'"
+        andYuri = " and YuriReleased = '0'"
+        andLeft = " and races.YuriReleased = '0'"
     else:
         settingsString = f"Calculated with Released Yuri allowed, between {setMin} and {setMax} Horses\n"
+        whereYuri = ""
+        andYuri = ""
+        andLeft = ""
 
     # If 0 horses are selected.
     if len(horse_list) == 0:
@@ -34,26 +40,26 @@ def compare(maps, horses_list, settings):
             horse_ls = []
             conn = sqlite3.connect('./horseraces.db')
             cursor = conn.cursor()
-            cursor.execute(f"select count(*) from races where HorseCount between {setMin} and {setMax};")
+            cursor.execute(f"select count(*) from races where HorseCount between {setMin} and {setMax}" + andYuri + ";")
             total_races = cursor.fetchone()[0]
             if total_races == 0:
                 return (settingsString + "No races found for search results")
             print(total_races)
-            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where races.HorseCount between {setMin} and {setMax} group by horsesInRace.horse order by count desc;")
+            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where races.HorseCount between {setMin} and {setMax}" + andLeft + " group by horsesInRace.horse order by count desc;")
             horse_mp, most_participated = cursor.fetchone()
-            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.wonRace = 1 and races.HorseCount between {setMin} and {setMax} group by horsesInRace.horse order by count desc;")
+            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.wonRace = 1 and races.HorseCount between {setMin} and {setMax}" + andLeft + " group by horsesInRace.horse order by count desc;")
             horse_mw, most_wins = cursor.fetchone()
-            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.wonRace = 1 and races.HorseCount between {setMin} and {setMax} group by horsesInRace.horse order by count asc limit 1;")
+            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.wonRace = 1 and races.HorseCount between {setMin} and {setMax}" + andLeft + " group by horsesInRace.horse order by count asc limit 1;")
             horse_lw, least_wins = cursor.fetchone()
 
-            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.wonRace = 0 and races.HorseCount between {setMin} and {setMax} group by horsesInRace.horse order by count desc;")
+            cursor.execute(f"select horse, count(*) as count from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.wonRace = 0 and races.HorseCount between {setMin} and {setMax}" + andLeft + " group by horsesInRace.horse order by count desc;")
             try:
                 horse_ml, most_losses = cursor.fetchone()
                 str5 = f"Most Losses: {horse_ml} with {most_losses}\n"
             except:
                 str5 = f"Most Losses: N/A.\n"
             for horse_code in gen0:
-                cursor.execute(f"SELECT COUNT(*) FROM races WHERE horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%') and HorseCount between {setMin} and {setMax};")
+                cursor.execute(f"SELECT COUNT(*) FROM races WHERE horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%') and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                 since_win = cursor.fetchone()[0]
                 if since_win > longest_since:
                     longest_since = since_win
@@ -96,7 +102,7 @@ def compare(maps, horses_list, settings):
             cursor = conn.cursor()
             for map in map_list:
                 map_name = dict_map[map]
-                cursor.execute(f"select count(*) from races where level = '{map}' and HorseCount between {setMin} and {setMax};")
+                cursor.execute(f"select count(*) from races where level = '{map}' and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                 race_count = cursor.fetchone()[0]
                 if race_count > most_races:
                     most_races = race_count
@@ -110,7 +116,7 @@ def compare(maps, horses_list, settings):
                     least_mraces.append(map_name)
 
                 try:
-                    cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' and HorseCount between {setMin} and {setMax} order by duration desc;")
+                    cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' and HorseCount between {setMin} and {setMax}" + andYuri + " order by duration desc;")
                     maplongest_ri, maplongest_rh, maplongest_rt, maplongest_rd = cursor.fetchone()
                 except:
                     maplongest_ri = 000
@@ -127,7 +133,7 @@ def compare(maps, horses_list, settings):
                     longest_race_level = map_name
 
                 try:
-                    cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' and HorseCount between {setMin} and {setMax} order by duration asc;")
+                    cursor.execute(f"select id, winningHorse, duration, date from races where level = '{map}' and HorseCount between {setMin} and {setMax}" + andYuri + " order by duration asc;")
                     mapshortest_ri, mapshortest_rh, mapshortest_rt, mapshortest_rd = cursor.fetchone()
                 except:
                     mapshortest_ri = 000
@@ -146,9 +152,9 @@ def compare(maps, horses_list, settings):
                 
                 for horse_code in gen0:
                     #print(f"Calculating stats for {horse_code} on map {map_names[maps.index(map)]}...")
-                    cursor.execute(f"select count(*) from races where level = '{map}' and winningHorse = '{horse_code}' and HorseCount between {setMin} and {setMax};")
+                    cursor.execute(f"select count(*) from races where level = '{map}' and winningHorse = '{horse_code}' and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                     win_count = cursor.fetchone()[0]
-                    cursor.execute(f"select count(*) from races where level = '{map}' and horsesInRace LIKE '%{horse_code}%' and HorseCount between {setMin} and {setMax};")
+                    cursor.execute(f"select count(*) from races where level = '{map}' and horsesInRace LIKE '%{horse_code}%' and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                     race_count = cursor.fetchone()[0]
                     if race_count > 0:
                         win_percentage = (win_count / race_count * 100)
@@ -228,13 +234,13 @@ def compare(maps, horses_list, settings):
                 cursor = conn.cursor()
 
                 #races_participated in
-                cursor.execute(f"select count(*) from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.horse = '{horse_code}' and races.HorseCount between {setMin} and {setMax};")
+                cursor.execute(f"select count(*) from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.horse = '{horse_code}' and races.HorseCount between {setMin} and {setMax}" + andLeft + ";")
                 map_race_count = cursor.fetchone()[0]
 
-                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and HorseCount between {setMin} and {setMax};")
+                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                 map_win_count = cursor.fetchone()[0]
 
-                cursor.execute(f"SELECT COUNT(*) FROM races WHERE horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%') and HorseCount between {setMin} and {setMax}; ")
+                cursor.execute(f"SELECT COUNT(*) FROM races WHERE horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%') and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                 since_win_count = cursor.fetchone()[0]
 
                 if map_race_count > 0:
@@ -314,13 +320,13 @@ def compare(maps, horses_list, settings):
                 cursor = conn.cursor()
 
                 #races_participated in
-                cursor.execute(f"select count(*) from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.horse = '{horse_code}' and horsesInRace.race_id in (select id from races where level = '{map_list[0]}') and races.HorseCount between {setMin} and {setMax};")
+                cursor.execute(f"select count(*) from horsesInRace left join races on horsesInRace.race_id = races.id where horsesInRace.horse = '{horse_code}' and horsesInRace.race_id in (select id from races where level = '{map_list[0]}') and races.HorseCount between {setMin} and {setMax}" + andLeft + ";")
                 map_race_count = cursor.fetchone()[0]
 
-                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_list[0]}' and HorseCount between {setMin} and {setMax};")
+                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_list[0]}' and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                 map_win_count = cursor.fetchone()[0]
 
-                cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_list[0]}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_list[0]}') and HorseCount between {setMin} and {setMax}; ")
+                cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_list[0]}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_list[0]}') and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                 since_win_count = cursor.fetchone()[0]
 
                 if map_race_count > 0:
@@ -397,13 +403,13 @@ def compare(maps, horses_list, settings):
                 map_name = dict_map[map_code]
 
                 #races_participated in
-                cursor.execute(f"select count(*) from horsesInRace left join races on races.id = horsesInRace.race_id where horsesInRace.horse = '{horse_code}' and races.level = '{map_code}' and races.HorseCount between {setMin} and {setMax};")
+                cursor.execute(f"select count(*) from horsesInRace left join races on races.id = horsesInRace.race_id where horsesInRace.horse = '{horse_code}' and races.level = '{map_code}' and races.HorseCount between {setMin} and {setMax}" + andLeft + ";")
                 map_race_count = cursor.fetchone()[0]
 
-                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_code}' and HorseCount between {setMin} and {setMax};")
+                cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_code}' and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                 map_win_count = cursor.fetchone()[0]
 
-                cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}') and HorseCount between {setMin} and {setMax};")
+                cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}') and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                 since_win_count = cursor.fetchone()[0]
 
                 if map_race_count > 0:
@@ -478,13 +484,13 @@ def compare(maps, horses_list, settings):
                     horsemap_name = f"{horse_code} on {map_name}"
 
                     #races_participated in
-                    cursor.execute(f"select count(*) from horsesInRace left join races on races.id = horsesInRace.race_id where horsesInRace.horse = '{horse_code}' and races.level = '{map_code}' and races.HorseCount between {setMin} and {setMax};")
+                    cursor.execute(f"select count(*) from horsesInRace left join races on races.id = horsesInRace.race_id where horsesInRace.horse = '{horse_code}' and races.level = '{map_code}' and races.HorseCount between {setMin} and {setMax}" + andLeft + ";")
                     map_race_count = cursor.fetchone()[0]
 
-                    cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_code}' and HorseCount between {setMin} and {setMax};")
+                    cursor.execute(f"select count(*) from races where winningHorse = '{horse_code}' and level = '{map_code}' and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                     map_win_count = cursor.fetchone()[0]
 
-                    cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}') and HorseCount between {setMin} and {setMax};")
+                    cursor.execute(f"SELECT COUNT(*) FROM races WHERE level = '{map_code}' and horsesInRace LIKE '%{horse_code}%' and id > (SELECT MAX(id) FROM races WHERE winningHorse LIKE '%{horse_code}%' and level = '{map_code}') and HorseCount between {setMin} and {setMax}" + andYuri + ";")
                     since_win_count = cursor.fetchone()[0]
 
                     if map_race_count > 0:
