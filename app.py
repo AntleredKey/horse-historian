@@ -394,7 +394,7 @@ class CustomDialog(QDialog):
         self.setLayout(layout1)
 
 
-#updatedb()
+updatedb()
 app = QApplication(sys.argv)
 app.setStyleSheet("QToolButton { border: none; background: transparent; }")
 app.setWindowIcon(QtGui.QIcon(":/graphics/favicon"))
