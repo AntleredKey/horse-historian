@@ -2,7 +2,7 @@ import sys, os
 import json
 from app_updatedb import updatedb
 from app_compare import compare
-from app_list import list
+from app_listtest import list
 from PySide6 import QtGui 
 from PySide6.QtCore import QSize, Qt, QSettings
 from PySide6.QtWidgets import QToolButton, QApplication, QMainWindow, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QDialogButtonBox, QDialog, QTextEdit, QMenu
@@ -379,7 +379,7 @@ class CustomDialog(QDialog):
         self.setLayout(layout1)
 
 
-updatedb()
+#updatedb()
 app = QApplication(sys.argv)
 app.setStyleSheet("QToolButton { border: none; background: transparent; }")
 app.setWindowIcon(QtGui.QIcon(":/graphics/favicon"))
